@@ -8,5 +8,6 @@
     "source.organizeImports": "always",
     "source.unusedImports": "always"
   },
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true
 }

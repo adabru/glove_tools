@@ -14,5 +14,15 @@
             "module": "maths_playground",
             "justMyCode": false
         },
+        {
+            "name": "eyeput",
+            "type": "debugpy",
+            "request": "launch",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "module": "eyeput",
+            "justMyCode": false
+        },
     ]
 }

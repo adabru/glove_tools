@@ -1,4 +1,8 @@
 panda3d
 PySide6
 pyqtgraph
+pyopengl
 serial
+pynput
+numpy
+psutil
