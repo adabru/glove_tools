@@ -1,6 +1,7 @@
-
 import pickle
 import time
+
+from maths_playground.config import get_recording_path
 
 from .protocol import *
 
@@ -53,15 +54,13 @@ class _RecordingInstance(Protocol):
             object = self.commToRecord.informationReceive
             self.parent.informationReceive = object
         if object != None:
-            self.tape.append({
-                'time': time.perf_counter() - self.t0,
-                'type': type,
-                'object': object
-            })
+            self.tape.append(
+                {"time": time.perf_counter() - self.t0, "type": type, "object": object}
+            )
         return type
 
     def close(self):
-        with open('recording.pickle', 'wb') as f:
+        with open("recording.pickle", "wb") as f:
             pickle.dump(self.tape, f)
         self.commToRecord.close()
 
@@ -83,7 +82,7 @@ class _PlaybackInstance(Protocol):
         self.isPaused = not self.isPaused
 
     def connect(self):
-        with open('recording.pickle', 'rb') as f:
+        with open(get_recording_path(), "rb") as f:
             self.tape = pickle.load(f)
         self.t0 = time.perf_counter()
 
@@ -91,15 +90,19 @@ class _PlaybackInstance(Protocol):
         pass
 
     def readPackage(self):
-        if not self.isPaused and len(self.tape) > 0 and time.perf_counter() - self.t0 >= self.tape[0]['time']:
+        if (
+            not self.isPaused
+            and len(self.tape) > 0
+            and time.perf_counter() - self.t0 >= self.tape[0]["time"]
+        ):
             item = self.tape.pop(0)
-            if item['type'] == PacketType.INFORMATION:
-                self.parent.informationReceive = item['object']
-            elif item['type'] == PacketType.DEBUG:
-                self.parent.debugReceive = item['object']
-            elif item['type'] == PacketType.DATA:
-                self.parent.dataReceive = item['object']
-            return item['type']
+            if item["type"] == PacketType.INFORMATION:
+                self.parent.informationReceive = item["object"]
+            elif item["type"] == PacketType.DEBUG:
+                self.parent.debugReceive = item["object"]
+            elif item["type"] == PacketType.DATA:
+                self.parent.dataReceive = item["object"]
+            return item["type"]
         else:
             return PacketType.NONE
 

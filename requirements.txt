@@ -1,0 +1,4 @@
+panda3d
+PySide6
+pyqtgraph
+serial
