@@ -12,7 +12,7 @@ from PySide6.QtCore import QRect, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QWidget
 
-from .gaze_filter import *
+from ..input.gaze_filter import *
 from .settings import *
 from .util import *
 

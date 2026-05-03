@@ -2,10 +2,10 @@
 
 import re, time, subprocess
 
-from pynput.mouse import Button, Controller
+from pynput.mouse import Controller
 from unix_socket import UnixSocket
 
-from settings import Sockets
+from eyeput.ui.settings import Sockets
 
 margin = 10
 

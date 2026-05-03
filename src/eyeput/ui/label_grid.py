@@ -4,6 +4,8 @@ from PySide6.QtCore import QRect, QRectF, Qt, QTimer, Signal, Slot
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QWidget
 
+from eyeput.input.input_type import InputVector2
+
 from .command_label import CommandLabel
 from .tiles import *
 
@@ -98,7 +100,8 @@ class LabelGrid(QWidget):
         self.state.layer = levelId
         self.update_grid()
 
-    def on_gaze(self, x, y, after_activation=False):
+    def move_pointer(self, vector: InputVector2) -> None:
+        x, y = vector.x, vector.y
         if not QRectF(0, 0, 1, 1).contains(x, y):
             return logging.debug("outside")
 
@@ -112,7 +115,7 @@ class LabelGrid(QWidget):
         widget = self.labels[(xWidget, yWidget)]
         self.set_hovered_item(widget)
 
-        if not after_activation and self.state.timeout:
+        if self.state.timeout:
             self.hover_timer.start(int(Times.element_selection * 1000))
         else:
             self.hover_timer.stop()

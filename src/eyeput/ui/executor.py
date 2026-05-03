@@ -1,6 +1,6 @@
 import time
 
-from . import external
+from .. import external
 
 
 class Executor:

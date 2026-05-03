@@ -5,7 +5,7 @@ from itertools import islice
 import numpy as np
 
 from .gaze_thread import InputFrame
-from .settings import *
+from ..ui.settings import *
 
 
 # recognize blink patterns
@@ -290,7 +290,7 @@ class GazeFilter:
                 self.t, self.left, self.right
             )
         if blink:
-            (frame.flips, frame.flip_position) = self.blink_filter.transform(
+            frame.flips, frame.flip_position = self.blink_filter.transform(
                 self.t, self.left, self.right, self.filtered_position
             )
 

@@ -1,5 +1,5 @@
-from .app import App
-from .executor import Executor
+from .ui.app import App
+from .ui.executor import Executor
 
 executor = Executor()
 app = App(executor)

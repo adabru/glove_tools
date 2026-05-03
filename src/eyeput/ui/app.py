@@ -1,20 +1,26 @@
 #!/usr/bin/env python
 
+from inspect import signature
 import signal
 import sys
+from typing import Callable
 
 from PySide6.QtCore import QMutex, QObject, Qt, QTimer, Signal, Slot
 from PySide6.QtWidgets import QApplication, QWidget
 
-from . import external
+from eyeput.input.input_control import InputControl
+from eyeput.input.input_type import InputVector2
+
+from .. import external
 from .activation import GridActivation
 from .debug_gaze import DebugGaze
 from .executor import Executor
 from .gaze_calibration import Calibration
-from .gaze_filter import GazeFilter
+from ..input.gaze_filter import GazeFilter
+from ..input.mouse_control import MouseControl
 from .gaze_pointer import GazePointer
-from .gaze_thread import GazeThread, InputFrame
-from .hotkey_thread import HotḱeyThread
+from ..input.gaze_thread import GazeThread, InputFrame
+from ..input.hotkey_thread import HotḱeyThread
 from .label_grid import LabelGrid
 from .settings import Times
 from .shared_tags import Tags
@@ -43,6 +49,8 @@ class App(QObject):
 
     executor: Executor
     tag_changed_signal = Signal(str, bool)
+
+    input_controls: dict[str, InputControl] = {}
 
     def __init__(self, executor: Executor):
         super().__init__()
@@ -102,6 +110,12 @@ class App(QObject):
         )
         self.tags.tag_changed.subscribe(self.tag_changed_signal.emit)
 
+        self.input_controls = {}
+        self.input_control_listeners: dict[str, list[Callable[[object], None]]] = {}
+        self.input_poll_timer = QTimer(self)
+        self.input_poll_timer.setInterval(int(Times.input_poll_interval * 1000))
+        self.input_poll_timer.timeout.connect(self.poll_inputs)
+
         # self.graph = Graph()
         # self.graph.setup()
 
@@ -116,7 +130,7 @@ class App(QObject):
     def on_gaze(self, input_frame: InputFrame):
         callbacks = {
             "on_blink": [self.on_blink],
-            "on_position": [self.grid_widget.on_gaze],
+            "on_position": [self.grid_widget.move_pointer],
             # "on_position": [self.gaze_pointer.on_gaze],
             # "on_variance": [self.status_widget.on_variance],
         }
@@ -138,9 +152,7 @@ class App(QObject):
             variance=variance_callback,
         )
         for callback in position_callback:
-            callback(
-                filtered_frame.screen_position[0], filtered_frame.screen_position[1]
-            )
+            callback(InputVector2(*filtered_frame.screen_position))
         for callback in blink_callback:
             callback(filtered_frame.flips, filtered_frame.flip_position)
         for callback in variance_callback:
@@ -231,19 +243,19 @@ class App(QObject):
                 self.tags.unset_tag("calibration")
             elif item.id == "select_0":
                 hide_grid = False
-                self.grid_widget.on_gaze(blink_position[0], blink_position[1])
+                self.grid_widget.move_pointer(InputVector2(*blink_position))
                 self.grid_widget.select_item(0, False)
             elif item.id == "select_1":
                 hide_grid = False
-                self.grid_widget.on_gaze(blink_position[0], blink_position[1])
+                self.grid_widget.move_pointer(InputVector2(*blink_position))
                 self.grid_widget.select_item(1, False)
             elif item.id == "select_and_hold":
                 hide_grid = False
-                self.grid_widget.on_gaze(blink_position[0], blink_position[1])
+                self.grid_widget.move_pointer(InputVector2(*blink_position))
                 self.grid_widget.select_item(0, False)
             elif item.id == "select_and_hide":
                 hide_grid = False
-                self.grid_widget.on_gaze(blink_position[0], blink_position[1])
+                self.grid_widget.move_pointer(InputVector2(*blink_position))
                 self.grid_widget.select_item(0, True)
 
         if hide_grid:
@@ -315,6 +327,34 @@ class App(QObject):
         if self.grid_widget.isVisible():
             self.grid_widget.update_grid()
 
+    def register_input_control(self, input_control: InputControl):
+        self.input_controls[input_control.name] = input_control
+
+    def bind_input_control(self, name: str, callback: Callable):
+        # check type
+        assert name in self.input_controls, f"Input control '{name}' not found"
+        input_control = self.input_controls[name]
+        sig = signature(callback)
+        first_param = sig.parameters.values().__iter__().__next__()
+        assert (
+            input_control.control_type == first_param.annotation
+        ), f"Input control '{name}' has type {input_control.control_type}, but callback expects {first_param.annotation}"
+
+        self.input_control_listeners.setdefault(name, []).append(callback)
+
+    @Slot()
+    def poll_inputs(self):
+        for name, input_control in self.input_controls.items():
+            try:
+                value = input_control.get_value()
+            except Exception as err:
+                print(f"Input control '{name}' poll failed: {err}")
+                continue
+
+            listeners = self.input_control_listeners.get(name, [])
+            for callback in listeners:
+                callback(value)
+
     def run(self):
         hotkey_thread = HotḱeyThread()
         hotkey_thread.hotkey_signal.connect(
@@ -325,6 +365,23 @@ class App(QObject):
         gaze_thread.gaze_signal.connect(
             self.on_gaze, Qt.ConnectionType.QueuedConnection
         )
+
+        mouse_control = MouseControl()
+        mouse_control.set_multiplier(
+            1.0
+            / get_screen_geometry().width()
+            / QApplication.primaryScreen().devicePixelRatio(),
+            1.0
+            / get_screen_geometry().height()
+            / QApplication.primaryScreen().devicePixelRatio(),
+        )
+        for input_control in mouse_control.get_input_controls():
+            self.register_input_control(input_control)
+
+        self.bind_input_control("mouse_vector2", self.grid_widget.move_pointer)
+        self.input_poll_timer.start()
+
+        # self.input_controls["mouse_vector2"] self.grid_widget.move_pointer]
 
         # hotkey_thread.start()
         # gaze_thread.start()

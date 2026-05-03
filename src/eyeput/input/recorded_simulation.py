@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-import re, time, subprocess
+import time, subprocess
 
 from unix_socket import UnixSocket
 
-from settings import Sockets
-
+from eyeput.ui.settings import Sockets
 
 sock_gaze = UnixSocket(Sockets.gaze, 100)
 

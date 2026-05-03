@@ -2,7 +2,7 @@ import os
 
 from PySide6.QtCore import QThread, Signal
 
-from .settings import *
+from ..ui.settings import *
 
 
 class HotḱeyThread(QThread):

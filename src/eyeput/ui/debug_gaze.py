@@ -2,7 +2,7 @@ from PySide6.QtCore import QRect
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QWidget
 
-from .gaze_filter import FilteredFrame
+from ..input.gaze_filter import FilteredFrame
 from .settings import *
 from .util import *
 

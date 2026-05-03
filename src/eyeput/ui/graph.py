@@ -5,7 +5,7 @@
 import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import QObject, Qt, Signal, Slot
-from settings import *
+from eyeput.ui.settings import *
 
 cursor = 0
 N = 100

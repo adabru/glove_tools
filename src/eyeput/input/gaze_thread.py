@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 from PySide6.QtCore import QThread, Signal
 
-from .settings import *
-from .util import *
+from ..ui.settings import *
+from ..ui.util import *
 
 
 class _MockSocket:
@@ -42,7 +42,7 @@ class InputFrame:
 
     @staticmethod
     def from_bytes(transmission: bytes) -> "InputFrame":
-        (t, l0, l1, r0, r1) = pickle.loads(transmission)
+        t, l0, l1, r0, r1 = pickle.loads(transmission)
         return InputFrame(t, vec(l0), vec(r0), vec(l1), vec(r1))
 
 

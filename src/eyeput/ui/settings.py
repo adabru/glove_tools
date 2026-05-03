@@ -57,3 +57,5 @@ class Times:
     selection_feedback = 0.1
     # Continuous scrolling
     scroll_interval = 0.05
+    # Polling interval for generic input controls read from the Qt event loop.
+    input_poll_interval = 0.016
