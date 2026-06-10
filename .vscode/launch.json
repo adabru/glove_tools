@@ -24,5 +24,15 @@
             "module": "eyeput",
             "justMyCode": false
         },
+        {
+            "name": "speech",
+            "type": "debugpy",
+            "request": "launch",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "module": "speech",
+            "justMyCode": false
+        },
     ]
 }

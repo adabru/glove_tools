@@ -6,3 +6,7 @@ serial
 pynput
 numpy
 psutil
+vosk
+sounddevice
+webrtcvad-wheels
+requests

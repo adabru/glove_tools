@@ -11,4 +11,4 @@ python -m maths_playground
 ```
 
 replace ad (inactive) with <https://github.com/HIPS/autograd>
-replace session_bus with ZeroMQ
+replace session_bus with [ZeroMQ](https://zeromq.org/)
